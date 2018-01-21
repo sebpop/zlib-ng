@@ -101,6 +101,7 @@ buildneon=0
 with_sanitizers=0
 with_msan=0
 with_fuzzers=0
+with_benchmarks=0
 floatabi=
 native=0
 sse2flag="-msse2"
@@ -184,6 +185,7 @@ case "$1" in
     --with-sanitizers) with_sanitizers=1; shift ;;
     --with-msan) with_msan=1; shift ;;
     --with-fuzzers) with_fuzzers=1; shift ;;
+    --with-benchmarks) with_benchmarks=1; shift ;;
     *)
       echo "unknown option: $1" | tee -a configure.log
       echo "$0 --help for help" | tee -a configure.log
@@ -225,11 +227,13 @@ esac
 
 if test $build32 -eq 1; then
   CFLAGS="${CFLAGS} -m32"
+  CXXFLAGS="${CXXFLAGS} -m32"
   SFLAGS="${SFLAGS} -m32"
   LDFLAGS="${LDFLAGS} -m32"
 fi
 if test $build64 -eq 1; then
   CFLAGS="${CFLAGS} -m64"
+  CXXFLAGS="${CXXFLAGS} -m64"
   SFLAGS="${SFLAGS} -m64"
   LDFLAGS="${LDFLAGS} -m64"
 fi
@@ -1205,6 +1209,7 @@ echo AR = $AR >> configure.log
 echo ARFLAGS = $ARFLAGS >> configure.log
 echo CC = $CC >> configure.log
 echo CFLAGS = $CFLAGS >> configure.log
+echo CXXFLAGS = $CXXFLAGS >> configure.log
 echo EXE = $EXE >> configure.log
 echo LDCONFIG = $LDCONFIG >> configure.log
 echo LDFLAGS = $LDFLAGS >> configure.log
@@ -1255,7 +1260,9 @@ if [ "$SRCDIR" != "$BUILDDIR" ]; then INCLUDES="-I$BUILDDIR ${INCLUDES}"; fi
 sed < $SRCDIR/Makefile.in "
 /^CC *=/s#=.*#=$CC#
 /^CFLAGS *=/s#=.*#=$CFLAGS#
+/^CXXFLAGS *=/s#=.*#=$CXXFLAGS#
 /^WITH_FUZZERS *=/s#=.*#=$with_fuzzers#
+/^WITH_BENCHMARKS *=/s#=.*#=$with_benchmarks#
 /^SFLAGS *=/s#=.*#=$SFLAGS#
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
@@ -1337,6 +1344,7 @@ sed < $SRCDIR/test/Makefile.in "
 /^COMPATTESTS *=/s#=.*#=$COMPATTESTS#
 /^QEMU_RUN *=/s#=.*#=$QEMU_RUN#
 /^WITH_FUZZERS *=/s#=.*#=$with_fuzzers#
+/^WITH_BENCHMARKS *=/s#=.*#=$with_benchmarks#
 " > test/Makefile
 
 # create zlib.pc with the configure results
