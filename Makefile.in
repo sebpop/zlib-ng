@@ -15,6 +15,7 @@
 CC=cc
 
 CFLAGS=-O
+CXXFLAGS=-O
 #CFLAGS=-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7
 #CFLAGS=-g -DZLIB_DEBUG
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
@@ -109,6 +110,18 @@ $(ARCHDIR)/%.lo: $(SRCDIR)/$(ARCHDIR)/%.c
 
 test: all
 	$(MAKE) -C test
+
+# This variable is set by configure.
+WITH_BENCHMARKS=
+ifeq (1,$(WITH_BENCHMARKS))
+benchmark: chromium_zlib_bench$(EXE)
+	$(MAKE) -C test benchmark
+else
+benchmark:
+endif
+
+chromium_zlib_bench$(EXE): $(SRCDIR)/test/bench/chromium_zlib_bench.cc $(STATICLIB)
+	$(CXX) $(CXXFLAGS) -std=c++11 $(INCLUDES) -o $@ $(SRCDIR)/test/bench/chromium_zlib_bench.cc $(STATICLIB)
 
 # This variable is set by configure.
 WITH_FUZZERS=
