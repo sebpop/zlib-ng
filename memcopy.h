@@ -266,6 +266,34 @@ static inline unsigned char *chunk_memcpy(unsigned char *out, unsigned char *fro
     return out;
 }
 
+/* Make sure that the compiler does not convert the main loop into a memset call. */
+static inline unsigned char *byte_memset_main_loop(unsigned char *out, unsigned len, unsigned char c) OPTNONE {
+    unsigned sz = sizeof(uint64_t);
+    while (len) {
+        /* When sz is a constant, the compiler replaces __builtin_memset with an
+           inline version that does not incur a function call overhead. */
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        MEMSET(out, c, sz);
+        out += sz;
+        len -= 8;
+    }
+
+    return out;
+}
+
 /* Memset LEN bytes in OUT with the value at OUT - 1. Return OUT + LEN. */
 static inline unsigned char *byte_memset(unsigned char *out, unsigned len) {
     unsigned sz = sizeof(uint64_t);
@@ -306,29 +334,7 @@ static inline unsigned char *byte_memset(unsigned char *out, unsigned len) {
         out += sz;
     }
 
-    while (len) {
-        /* When sz is a constant, the compiler replaces __builtin_memset with an
-           inline version that does not incur a function call overhead. */
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        len -= 8;
-    }
-
-    return out;
+    return byte_memset_main_loop(out, len, c);
 }
 
 /* Copy DIST bytes from OUT - DIST into OUT + DIST * k, for 0 <= k < LEN/DIST. Return OUT + LEN. */

@@ -238,9 +238,11 @@ void ZLIB_INTERNAL   zcfree(void *opaque, void *ptr);
 #endif
 
 #if (defined(__GNUC__) || defined(__clang__))
+#define OPTNONE __attribute__((optnone))
 #define MEMCPY __builtin_memcpy
 #define MEMSET __builtin_memset
 #else
+#define OPTNONE
 #define MEMCPY memcpy
 #define MEMSET memset
 #endif
