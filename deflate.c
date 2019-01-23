@@ -87,10 +87,23 @@ ZLIB_INTERNAL void flush_pending (PREFIX3(stream) *strm);
 ZLIB_INTERNAL unsigned read_buf  (PREFIX3(stream) *strm, unsigned char *buf, unsigned size);
 
 extern void crc_reset(deflate_state *const s);
+
 #ifdef X86_PCLMULQDQ_CRC
 extern void crc_finalize(deflate_state *const s);
+# include "arch/x86/x86.h"
+# include "arch/x86/crc_folding.h"
 #endif
-extern void copy_with_crc(PREFIX3(stream) *strm, unsigned char *dst, unsigned long size);
+
+static inline void copy_with_crc(PREFIX3(stream) *strm, unsigned char *dst, unsigned long size) {
+#ifdef X86_PCLMULQDQ_CRC
+    if (x86_cpu_has_pclmulqdq) {
+        crc_fold_copy(strm->state, dst, strm->next_in, size);
+        return;
+    }
+#endif
+    memcpy(dst, strm->next_in, size);
+    strm->adler = PREFIX(crc32)(strm->adler, dst, size);
+}
 
 /* ===========================================================================
  * Local data
