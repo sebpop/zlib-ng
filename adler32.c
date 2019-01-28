@@ -7,9 +7,11 @@
 
 #include "zbuild.h"
 #include "zutil.h"
-#include "functable.h"
 
-uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len);
+#if ((defined(__ARM_NEON__) || defined(__ARM_NEON)) && defined(ARM_NEON_ADLER32))
+# include "arch/arm/adler32_neon.h"
+#endif
+
 static uint32_t adler32_combine_(uint32_t adler1, uint32_t adler2, z_off64_t len2);
 
 #define BASE 65521U     /* largest prime smaller than 65536 */
@@ -63,9 +65,14 @@ static uint32_t adler32_combine_(uint32_t adler1, uint32_t adler2, z_off64_t len
 #endif
 
 /* ========================================================================= */
-uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len) {
+uint32_t ZLIB_INTERNAL adler32_impl(uint32_t adler, const unsigned char *buf, size_t len) {
     uint32_t sum2;
     unsigned n;
+
+#if ((defined(__ARM_NEON__) || defined(__ARM_NEON)) && defined(ARM_NEON_ADLER32))
+    if (len >= 16 && arm_cpu_has_neon)
+        return adler32_neon(adler, buf, len);
+#endif
 
     /* split Adler-32 into component sums */
     sum2 = (adler >> 16) & 0xffff;
@@ -148,12 +155,12 @@ uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len) {
 }
 
 uint32_t ZEXPORT PREFIX(adler32_z)(uint32_t adler, const unsigned char *buf, size_t len) {
-    return functable.adler32(adler, buf, len);
+    return adler32_impl(adler, buf, len);
 }
 
 /* ========================================================================= */
 uint32_t ZEXPORT PREFIX(adler32)(uint32_t adler, const unsigned char *buf, uint32_t len) {
-    return functable.adler32(adler, buf, len);
+    return adler32_impl(adler, buf, len);
 }
 
 /* ========================================================================= */
