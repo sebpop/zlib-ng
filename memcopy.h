@@ -268,67 +268,12 @@ static inline unsigned char *chunk_memcpy(unsigned char *out, unsigned char *fro
 
 /* Memset LEN bytes in OUT with the value at OUT - 1. Return OUT + LEN. */
 static inline unsigned char *byte_memset(unsigned char *out, unsigned len) {
-    unsigned sz = sizeof(uint64_t);
-    Assert(len >= sz, "byte_memset should be called on larger chunks");
-
     unsigned char *from = out - 1;
     unsigned char c = *from;
 
-    /* First, deal with the case when LEN is not a multiple of SZ. */
-    MEMSET(out, c, sz);
-    unsigned rem = len % sz;
-    len /= sz;
-    out += rem;
+    MEMSET(out, c, len);
 
-    unsigned by8 = len % 8;
-    len -= by8;
-    switch (by8) {
-    case 7:
-        MEMSET(out, c, sz);
-        out += sz;
-    case 6:
-        MEMSET(out, c, sz);
-        out += sz;
-    case 5:
-        MEMSET(out, c, sz);
-        out += sz;
-    case 4:
-        MEMSET(out, c, sz);
-        out += sz;
-    case 3:
-        MEMSET(out, c, sz);
-        out += sz;
-    case 2:
-        MEMSET(out, c, sz);
-        out += sz;
-    case 1:
-        MEMSET(out, c, sz);
-        out += sz;
-    }
-
-    while (len) {
-        /* When sz is a constant, the compiler replaces __builtin_memset with an
-           inline version that does not incur a function call overhead. */
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        MEMSET(out, c, sz);
-        out += sz;
-        len -= 8;
-    }
-
-    return out;
+    return out + len;
 }
 
 /* Copy DIST bytes from OUT - DIST into OUT + DIST * k, for 0 <= k < LEN/DIST. Return OUT + LEN. */
