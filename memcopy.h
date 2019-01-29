@@ -69,35 +69,10 @@ static inline unsigned char *copy_8_bytes(unsigned char *out, unsigned char *fro
 static inline unsigned char *copy_bytes(unsigned char *out, unsigned char *from, unsigned len) {
     Assert(len < 8, "copy_bytes should be called with less than 8 bytes");
 
-#ifndef UNALIGNED_OK
     while (len--) {
         *out++ = *from++;
     }
     return out;
-#else
-    switch (len) {
-    case 7:
-        return copy_7_bytes(out, from);
-    case 6:
-        return copy_6_bytes(out, from);
-    case 5:
-        return copy_5_bytes(out, from);
-    case 4:
-        return copy_4_bytes(out, from);
-    case 3:
-        return copy_3_bytes(out, from);
-    case 2:
-        return copy_2_bytes(out, from);
-    case 1:
-        return copy_1_bytes(out, from);
-    case 0:
-        return out;
-    default:
-        Assert(0, "should not happen");
-    }
-
-    return out;
-#endif /* UNALIGNED_OK */
 }
 
 /* Copy LEN bytes (7 or fewer) from FROM into OUT. Return OUT + LEN. */

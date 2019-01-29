@@ -27,7 +27,7 @@
    instruction appropriate for the inffast_chunk_t type.
  */
 static inline inffast_chunk_t loadchunk(unsigned char const* s) {
-    inffast_chunk_t c;
+     inffast_chunk_t c;
     __builtin_memcpy(&c, s, sizeof(c));
     return c;
 }
@@ -343,66 +343,15 @@ void ZLIB_INTERNAL inflate_fast(PREFIX3(stream) *strm, unsigned long start) {
                     if (op < len) {             /* still need some from output */
                         len -= op;
                         out = chunkcopysafe(out, from, op, safe);
-                        if (dist == 1) {
-                            out = byte_memset(out, len);
-                        } else {
-                            out = chunkunroll(out, &dist, &len);
-                            out = chunkcopysafe(out, out - dist, len, safe);
-                        }
+                        out = chunkunroll(out, &dist, &len);
+                        out = chunkcopysafe(out, out - dist, len, safe);
                     } else {
-                        if (from - out == 1) {
-                            out = byte_memset(out, len);
-                        } else {
-                            out = chunkcopysafe(out, from, len, safe);
-                        }
+                        out = chunkcopysafe(out, from, len, safe);
                     }
-#else
-                    from = window;
-                    if (wnext == 0) {           /* very common case */
-                        from += wsize - op;
-                        if (op < len) {         /* some from window */
-                            len -= op;
-                            do {
-                                *out++ = *from++;
-                            } while (--op);
-                            from = out - dist;  /* rest from output */
-                        }
-                    } else if (wnext < op) {      /* wrap around window */
-                        from += wsize + wnext - op;
-                        op -= wnext;
-                        if (op < len) {         /* some from end of window */
-                            len -= op;
-                            do {
-                                *out++ = *from++;
-                            } while (--op);
-                            from = window;
-                            if (wnext < len) {  /* some from start of window */
-                                op = wnext;
-                                len -= op;
-                                do {
-                                    *out++ = *from++;
-                                } while (--op);
-                                from = out - dist;      /* rest from output */
-                            }
-                        }
-                    } else {                      /* contiguous in window */
-                        from += wnext - op;
-                        if (op < len) {         /* some from window */
-                            len -= op;
-                            do {
-                                *out++ = *from++;
-                            } while (--op);
-                            from = out - dist;  /* rest from output */
-                        }
-                    }
-
-                    out = chunk_copy(out, from, (int) (out - from), len);
 #endif
                 } else {
 #ifdef INFFAST_CHUNKSIZE
-                    if (dist == 1 && len >= sizeof(uint64_t)) {
-                        out = byte_memset(out, len);
-                    } else {
+                  {
                         /* Whole reference is in range of current output.  No
                            range checks are necessary because we start with room
                            for at least 258 bytes of output, so unroll and roundoff
@@ -412,13 +361,6 @@ void ZLIB_INTERNAL inflate_fast(PREFIX3(stream) *strm, unsigned long start) {
                         out = chunkunroll(out, &dist, &len);
                         out = chunkcopy(out, out - dist, len);
                     }
-#else
-                    if (len < sizeof(uint64_t))
-                      out = set_bytes(out, out - dist, dist, len);
-                    else if (dist == 1)
-                      out = byte_memset(out, len);
-                    else
-                      out = chunk_memset(out, out - dist, dist, len);
 #endif
                 }
             } else if ((op & 64) == 0) {          /* 2nd level distance code */

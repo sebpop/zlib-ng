@@ -19,6 +19,10 @@ typedef uint8x16_t inffast_chunk_t;
 #  define INFFAST_CHUNKSIZE sizeof(inffast_chunk_t)
 #endif
 
+#  include <immintrin.h>
+typedef __m128i inffast_chunk_t;
+#  define INFFAST_CHUNKSIZE sizeof(inffast_chunk_t)
+
 #define INFLATE_FAST_MIN_HAVE 8
 #define INFLATE_FAST_MIN_LEFT 258
 
