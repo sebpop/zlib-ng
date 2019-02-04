@@ -151,6 +151,37 @@ static inline unsigned char *chunk_memset(unsigned char *out, unsigned dist, uns
 #endif
         break;
     }
+#if defined(__ARM_NEON__) || defined(__ARM_NEON)
+    case 3: {
+      uint8x8x3_t chunks;
+      sz = sizeof(chunks);
+      if (len < sz) {
+          out = chunk_unroll(out, &dist, &len);
+          return chunk_copy(out, out - dist, len);
+      }
+
+      /* Load 3 bytes 'a,b,c' from FROM and duplicate across all lanes:
+         chunks[0] = {a,a,a,a,a,a,a,a}
+         chunks[1] = {b,b,b,b,b,b,b,b}
+         chunks[2] = {c,c,c,c,c,c,c,c}. */
+      chunks = vld3_dup_u8(from);
+
+      unsigned rem = len % sz;
+      len -= rem;
+      while (len) {
+          /* Store "a,b,c, ..., a,b,c". */
+          vst3_u8(out, chunks);
+          out += sz;
+          len -= sz;
+      }
+
+      /* Last, deal with the case when LEN is not a multiple of SZ. */
+      if (rem)
+          MEMCPY(out, &chunk, rem);
+      out += rem;
+      return out;
+    }
+#endif
     case 4: {
         int32_t c;
         MEMCPY(&c, from, sizeof(c));
@@ -161,6 +192,37 @@ static inline unsigned char *chunk_memset(unsigned char *out, unsigned dist, uns
 #endif
         break;
     }
+#if defined(__ARM_NEON__) || defined(__ARM_NEON)
+    case 6: {
+      uint16x8x3_t chunks;
+      sz = sizeof(chunks);
+      if (len < sz) {
+          out = chunk_unroll(out, &dist, &len);
+          return chunk_copy(out, out - dist, len);
+      }
+
+      /* Load 6 bytes 'ab,cd,ef' from FROM and duplicate across all lanes:
+         chunks[0] = {ab,ab,ab,ab,ab,ab,ab,ab}
+         chunks[1] = {cd,cd,cd,cd,cd,cd,cd,cd}
+         chunks[2] = {ef,ef,ef,ef,ef,ef,ef,ef}. */
+      chunks = vld3q_dup_u16((unsigned short *)from);
+
+      unsigned rem = len % sz;
+      len -= rem;
+      while (len) {
+          /* Store "ab,cd,ef, ..., ab,cd,ef". */
+          vst3q_u16((unsigned short *)out, chunks);
+          out += sz;
+          len -= sz;
+      }
+
+      /* Last, deal with the case when LEN is not a multiple of SZ. */
+      if (rem)
+          MEMCPY(out, &chunk, rem);
+      out += rem;
+      return out;
+    }
+#endif
     case 8: {
 #if defined(X86_SSE2)
         int64_t c;
