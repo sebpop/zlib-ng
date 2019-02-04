@@ -175,10 +175,10 @@ static inline unsigned char *chunk_memset(unsigned char *out, unsigned dist, uns
           len -= sz;
       }
 
-      /* Last, deal with the case when LEN is not a multiple of SZ. */
-      if (rem)
-          MEMCPY(out, &chunk, rem);
-      out += rem;
+      while (rem) {
+          *out++ = *from++;
+          --rem;
+      }
       return out;
     }
 #endif
@@ -216,10 +216,10 @@ static inline unsigned char *chunk_memset(unsigned char *out, unsigned dist, uns
           len -= sz;
       }
 
-      /* Last, deal with the case when LEN is not a multiple of SZ. */
-      if (rem)
-          MEMCPY(out, &chunk, rem);
-      out += rem;
+      while (rem) {
+          *out++ = *from++;
+          --rem;
+      }
       return out;
     }
 #endif
@@ -250,10 +250,10 @@ static inline unsigned char *chunk_memset(unsigned char *out, unsigned dist, uns
         len -= sz;
     }
 
-    /* Last, deal with the case when LEN is not a multiple of SZ. */
-    if (rem)
-        MEMCPY(out, &chunk, rem);
-    out += rem;
+    while (rem) {
+        *out++ = *from++;
+        --rem;
+    }
     return out;
 }
 
